@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大易輸入法部件打字練習網頁</title>
+  <!-- Tailwind CSS 快速打造現代化 UI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .key-cap {
+      box-shadow: 0 4px 0 #cbd5e1;
+    }
+    .key-cap:active {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 #cbd5e1;
+    }
+  </style>
+</head>
+<body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
+
+  <div class="max-w-5xl mx-auto p-4 md:p-6">
+    <!-- 標題欄 -->
+    <header class="bg-white rounded-xl shadow-md p-6 mb-6 text-center border-b-4 border-indigo-500">
+      <h1 class="text-3xl font-extrabold text-indigo-700 tracking-wide">大易輸入法 · 部件分類打字練習網頁</h1>
+      <p class="text-slate-500 mt-2 text-sm">結合 Google Sheets 資料庫 · 支援部件熟練、文字拆解與文章打字練習</p>
+    </header>
+
+    <!-- 部件類別勾選區 -->
+    <section class="bg-white rounded-xl shadow-md p-6 mb-6">
+      <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
+        <span>📌</span> 選擇練習部件類別（可多選）：
+      </h2>
+      <div id="categoryFilters" class="flex flex-wrap gap-4">
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="五行類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">五行類 (金/木/水/火/土)</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="人員類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">人員類 (人/手/目/口/立/心)</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="動物類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">動物類 (牛/鳥/馬/蟲)</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="自然類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">自然類 (日/月/山/雨/卜)</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="農業類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">農業類 (禾/竹/草)</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="工藝類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">工藝/器物類 (車/舟/言/革/弓)</span>
+        </label>
+      </div>
+    </section>
+
+    <!-- 練習模式切換 Tab -->
+    <div class="flex border-b border-slate-300 mb-6 gap-2">
+      <button id="tabMode1" onclick="switchMode('mode1')" class="mode-tab py-3 px-6 font-bold text-indigo-600 border-b-4 border-indigo-600 bg-white rounded-t-lg shadow-sm">
+        1. 部件熟練練習
+      </button>
+      <button id="tabMode2" onclick="switchMode('mode2')" class="mode-tab py-3 px-6 font-semibold text-slate-500 hover:text-indigo-600 rounded-t-lg">
+        2. 文字拆解練習
+      </button>
+      <button id="tabMode3" onclick="switchMode('mode3')" class="mode-tab py-3 px-6 font-semibold text-slate-500 hover:text-indigo-600 rounded-t-lg">
+        3. 文章打字練習
+      </button>
+    </div>
+
+    <!-- 練習主區域 -->
+    <main class="bg-white rounded-xl shadow-md p-8 min-h-[350px] relative">
+
+      <!-- 統計數據面板 -->
+      <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 text-sm md:text-base">
+        <div class="flex gap-6">
+          <span class="text-slate-500">正確數：<strong id="correctCount" class="text-emerald-600 text-lg">0</strong></span>
+          <span class="text-slate-500">錯誤數：<strong id="wrongCount" class="text-rose-600 text-lg">0</strong></span>
+          <span class="text-slate-500">正確率：<strong id="accuracy" class="text-indigo-600 text-lg">100%</strong></span>
+        </div>
+        <button onclick="resetStats()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-600 px-3 py-1.5 rounded-md">重新統計</button>
+      </div>
+
+      <!-- 模式一：部件熟練練習 -->
+      <div id="practiceMode1" class="mode-content text-center py-6">
+        <div class="text-slate-400 text-sm mb-2">請按下對應的大易字根按鍵：</div>
+        <div id="targetRadical" class="text-7xl font-extrabold text-indigo-600 my-4 h-24 flex items-center justify-center">艹</div>
+        <div id="radicalHint" class="text-slate-500 text-base mb-6">（提示：輔助字根 / U 鍵）</div>
+        <input type="text" id="mode1Input" class="opacity-0 absolute -z-10" autofocus>
+        <div class="inline-block bg-indigo-50 border border-indigo-200 rounded-lg px-6 py-3 text-indigo-800 text-sm font-medium">
+          💡 請直接敲擊鍵盤按鍵進行輸入
+        </div>
+      </div>
+
+      <!-- 模式二：文字拆解練習 -->
+      <div id="practiceMode2" class="mode-content hidden text-center py-6">
+        <div class="text-slate-400 text-sm mb-2">請依序輸入該字的大易拆碼：</div>
+        <div id="targetCharacter" class="text-7xl font-extrabold text-indigo-600 my-4">明</div>
+        <div id="charBreakdown" class="text-slate-500 text-sm mb-4">拆解提示：日 + 月</div>
+        <div id="charInputDisplay" class="text-2xl font-mono tracking-widest text-indigo-900 bg-slate-100 w-48 mx-auto py-2 rounded-lg border mb-4 h-12 flex items-center justify-center">
+          -
+        </div>
+        <input type="text" id="mode2Input" class="opacity-0 absolute -z-10">
+      </div>
+
+      <!-- 模式三：文章打字練習 -->
+      <div id="practiceMode3" class="mode-content hidden">
+        <div class="mb-4">
+          <label class="text-sm font-bold text-slate-600">選擇文章：</label>
+          <select id="articleSelect" onchange="loadArticle()" class="border rounded-lg px-3 py-2 text-sm bg-slate-50">
+            <!-- 動態載入文章 -->
+          </select>
+        </div>
+        <div id="articleDisplay" class="text-2xl leading-relaxed tracking-wider font-serif bg-slate-50 p-6 rounded-lg border min-h-[120px] mb-4">
+          <!-- 動態載入文章字元 -->
+        </div>
+        <input type="text" id="mode3Input" class="w-full border-2 border-indigo-300 rounded-lg p-3 text-lg focus:outline-none focus:border-indigo-600" placeholder="點擊此處開始打字..." autofocus>
+      </div>
+
+      <!-- 反饋訊息提示器 -->
+      <div id="feedbackMsg" class="mt-4 text-center font-bold text-lg min-h-[28px]"></div>
+    </main>
+  </div>
+
+  <script>
+    // 預設示範資料庫 (若未設定 Google Sheets API URL 則自動選用)
+    const defaultData = {
+      components: [
+        { Category: '五行類', Radical: '金', Key: '0', SubRadicals: '釒', Hint: '0鍵：金部' },
+        { Category: '五行類', Radical: '木', Key: 'I', SubRadicals: '朩', Hint: 'I鍵：木部' },
+        { Category: '五行類', Radical: '水', Key: 'X', SubRadicals: '氵', Hint: 'X鍵：水部' },
+        { Category: '五行類', Radical: '火', Key: 'V', SubRadicals: '灬', Hint: 'V鍵：火部' },
+        { Category: '五行類', Radical: '土', Key: 'F', SubRadicals: '土', Hint: 'F鍵：土部' },
+        { Category: '人員類', Radical: '人', Key: 'A', SubRadicals: '亻𠆢', Hint: 'A鍵：人部' },
+        { Category: '人員類', Radical: '手', Key: 'Q', SubRadicals: '扌', Hint: 'Q鍵：手部' },
+        { Category: '動物類', Radical: '牛', Key: '2', SubRadicals: '牜', Hint: '2鍵：牛部' },
+        { Category: '自然類', Radical: '日', Key: 'O', SubRadicals: '曰', Hint: 'O鍵：日部' },
+        { Category: '農業類', Radical: '艹', Key: 'U', SubRadicals: '艸', Hint: 'U鍵：草字頭' }
+      ],
+      characters: [
+        { Category: '五行類', Character: '鑫', DayiKeys: '000', Breakdown: '金 + 金 + 金', Description: '三金鑫' },
+        { Category: '五行類', Character: '森', DayiKeys: 'III', Breakdown: '木 + 木 + 木', Description: '三木森' },
+        { Category: '自然類', Character: '明', DayiKeys: 'OJ', Breakdown: '日 + 月', Description: '日月明' },
+        { Category: '人員類', Character: '休', DayiKeys: 'AI', Breakdown: '人 + 木', Description: '人木休' }
+      ],
+      articles: [
+        { ID: '1', Title: '基礎部件練習句', Content: '工欲善其事必先利其器大易輸入法部件練習' },
+        { ID: '2', Title: '五行自然句', Content: '金木水火土日月照大地' }
+      ]
+    };
+
+    let dbData = defaultData;
+    let currentMode = 'mode1';
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    // 當前練習項目指標
+    let currentRadicalObj = null;
+    let currentCharObj = null;
+    let currentArticleText = '';
+    let currentArticleIndex = 0;
+
+    // 初始化與事件監聽
+    window.addEventListener('DOMContentLoaded', () => {
+      setupEventListeners();
+      nextRadicalQuestion();
+      loadArticles();
+    });
+
+    function setupEventListeners() {
+      // 部件類別勾選變更
+      document.querySelectorAll('.category-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+          if (currentMode === 'mode1') nextRadicalQuestion();
+          if (currentMode === 'mode2') nextCharQuestion();
+        });
+      });
+
+      // 全局鍵盤監聽（適用於 Mode 1 & Mode 2）
+      document.addEventListener('keydown', (e) => {
+        if (currentMode === 'mode1') {
+          handleMode1KeyPress(e.key.toUpperCase());
+        } else if (currentMode === 'mode2') {
+          handleMode2KeyPress(e.key.toUpperCase());
+        }
+      });
+
+      // Mode 3 輸入監聽
+      document.getElementById('mode3Input').addEventListener('input', (e) => {
+        handleMode3Input(e.target.value);
+      });
+    }
+
+    // 取得當前勾選的類別
+    function getSelectedCategories() {
+      const checkboxes = document.querySelectorAll('.category-checkbox:checked');
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    // 模式切換邏輯
+    function switchMode(mode) {
+      currentMode = mode;
+      document.querySelectorAll('.mode-tab').forEach(b => {
+        b.classList.remove('border-b-4', 'border-indigo-600', 'text-indigo-600', 'font-bold');
+        b.classList.add('text-slate-500', 'font-semibold');
+      });
+      document.querySelectorAll('.mode-content').forEach(c => c.classList.add('hidden'));
+
+      if (mode === 'mode1') {
+        document.getElementById('tabMode1').classList.add('border-b-4', 'border-indigo-600', 'text-indigo-600', 'font-bold');
+        document.getElementById('practiceMode1').classList.remove('hidden');
+        nextRadicalQuestion();
+      } else if (mode === 'mode2') {
+        document.getElementById('tabMode2').classList.add('border-b-4', 'border-indigo-600', 'text-indigo-600', 'font-bold');
+        document.getElementById('practiceMode2').classList.remove('hidden');
+        nextCharQuestion();
+      } else if (mode === 'mode3') {
+        document.getElementById('tabMode3').classList.add('border-b-4', 'border-indigo-600', 'text-indigo-600', 'font-bold');
+        document.getElementById('practiceMode3').classList.remove('hidden');
+        loadArticle();
+      }
+    }
+
+    // --- 模式 1：部件熟練練習 ---
+    function nextRadicalQuestion() {
+      const selectedCats = getSelectedCategories();
+      const filtered = dbData.components.filter(c => selectedCats.includes(c.Category));
+
+      if (filtered.length === 0) {
+        document.getElementById('targetRadical').innerText = '⚠️';
+        document.getElementById('radicalHint').innerText = '請至少勾選一個部件類別';
+        return;
+      }
+
+      currentRadicalObj = filtered[Math.floor(Math.random() * filtered.length)];
+      document.getElementById('targetRadical').innerText = currentRadicalObj.Radical;
+      document.getElementById('radicalHint').innerText = `（提示：${currentRadicalObj.Hint}）`;
+    }
+
+    function handleMode1KeyPress(key) {
+      if (!currentRadicalObj) return;
+
+      if (key === currentRadicalObj.Key.toUpperCase()) {
+        showFeedback('✨ 正確！', 'emerald');
+        correctCount++;
+        nextRadicalQuestion();
+      } else if (/^[A-Z0-9;,.\/]$/.test(key)) {
+        showFeedback(`❌ 錯誤！按鍵應為 ${currentRadicalObj.Key}`, 'rose');
+        wrongCount++;
+      }
+      updateStats();
+    }
+
+    // --- 模式 2：文字拆解練習 ---
+    let mode2InputKeys = '';
+
+    function nextCharQuestion() {
+      const selectedCats = getSelectedCategories();
+      const filtered = dbData.characters.filter(c => selectedCats.includes(c.Category));
+
+      if (filtered.length === 0) {
+        document.getElementById('targetCharacter').innerText = '⚠️';
+        document.getElementById('charBreakdown').innerText = '請至少勾選一個部件類別';
+        return;
+      }
+
+      currentCharObj = filtered[Math.floor(Math.random() * filtered.length)];
+      document.getElementById('targetCharacter').innerText = currentCharObj.Character;
+      document.getElementById('charBreakdown').innerText = `部件拆解：${currentCharObj.Breakdown}`;
+      mode2InputKeys = '';
+      updateMode2Display();
+    }
+
+    function handleMode2KeyPress(key) {
+      if (!currentCharObj) return;
+
+      if (key === 'BACKSPACE') {
+        mode2InputKeys = mode2InputKeys.slice(0, -1);
+        updateMode2Display();
+        return;
+      }
+
+      if (/^[A-Z0-9;,.\/]$/.test(key)) {
+        mode2InputKeys += key;
+        updateMode2Display();
+
+        const targetKeys = currentCharObj.DayiKeys.toUpperCase();
+        if (mode2InputKeys === targetKeys) {
+          showFeedback('🎉 拆解正確！', 'emerald');
+          correctCount++;
+          setTimeout(nextCharQuestion, 800);
+        } else if (!targetKeys.startsWith(mode2InputKeys)) {
+          showFeedback(`❌ 拆解錯誤！正確為 ${targetKeys}`, 'rose');
+          wrongCount++;
+          mode2InputKeys = '';
+          setTimeout(updateMode2Display, 1000);
+        }
+        updateStats();
+      }
+    }
+
+    function updateMode2Display() {
+      document.getElementById('charInputDisplay').innerText = mode2InputKeys || '-';
+    }
+
+    // --- 模式 3：文章打字練習 ---
+    function loadArticles() {
+      const select = document.getElementById('articleSelect');
+      select.innerHTML = dbData.articles.map(a => `<option value="${a.ID}">${a.Title}</option>`).join('');
+      loadArticle();
+    }
+
+    function loadArticle() {
+      const selectId = document.getElementById('articleSelect').value;
+      const article = dbData.articles.find(a => a.ID == selectId) || dbData.articles[0];
+      currentArticleText = article.Content;
+      currentArticleIndex = 0;
+      document.getElementById('mode3Input').value = '';
+      renderArticleDisplay();
+    }
+
+    function renderArticleDisplay() {
+      const container = document.getElementById('articleDisplay');
+      let html = '';
+      for (let i = 0; i < currentArticleText.length; i++) {
+        if (i < currentArticleIndex) {
+          html += `<span class="text-emerald-600 font-bold">${currentArticleText[i]}</span>`;
+        } else if (i === currentArticleIndex) {
+          html += `<span class="bg-indigo-200 text-indigo-900 font-bold underline px-1 rounded">${currentArticleText[i]}</span>`;
+        } else {
+          html += `<span class="text-slate-400">${currentArticleText[i]}</span>`;
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function handleMode3Input(val) {
+      if (!val) return;
+      const inputChar = val.slice(-1);
+      const targetChar = currentArticleText[currentArticleIndex];
+
+      if (inputChar === targetChar) {
+        correctCount++;
+        currentArticleIndex++;
+        if (currentArticleIndex >= currentArticleText.length) {
+          showFeedback('🏆 完成文章打字！', 'emerald');
+        }
+      } else {
+        wrongCount++;
+        showFeedback(`錯字！應輸入：「${targetChar}」`, 'rose');
+      }
+
+      document.getElementById('mode3Input').value = '';
+      updateStats();
+      renderArticleDisplay();
+    }
+
+    // 通用輔助函式
+    function showFeedback(msg, color) {
+      const el = document.getElementById('feedbackMsg');
+      el.innerText = msg;
+      el.className = `mt-4 text-center font-bold text-lg text-${color}-600`;
+      setTimeout(() => { el.innerText = ''; }, 1500);
+    }
+
+    function updateStats() {
+      document.getElementById('correctCount').innerText = correctCount;
+      document.getElementById('wrongCount').innerText = wrongCount;
+      const total = correctCount + wrongCount;
+      const acc = total === 0 ? 100 : Math.round((correctCount / total) * 100);
+      document.getElementById('accuracy').innerText = `${acc}%`;
+    }
+
+    function resetStats() {
+      correctCount = 0;
+      wrongCount = 0;
+      updateStats();
+    }
+  </script>
+</body>
+</html>
