@@ -453,7 +453,7 @@
       showFeedback('⏳ 正在儲存成績至 Google Sheets...', 'indigo');
 
       try {
-        const res = await fetch(GAS_API_URL, {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbxETeYDSIPZ9bHDT7tancCOB_0X_d6yALdojQt-0LPmug4aQfXS1TGs39EbRcA1WMaM/exec", {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
