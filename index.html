@@ -28,7 +28,7 @@
         </label>
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="人員類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">人員類 (人/手/目/口/立/心)</span>
+          <span class="font-medium text-slate-700">人員類</span>
         </label>
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="人類" class="category-checkbox accent-indigo-600 rounded" checked>
@@ -87,7 +87,7 @@
       <div id="practiceMode1" class="mode-content text-center py-6">
         <div class="text-slate-400 text-sm mb-2">請按下對應的大易字根按鍵：</div>
         <div id="targetRadical" class="text-7xl font-extrabold text-indigo-600 my-4 h-28 flex items-center justify-center">
-          <!-- 文字或 <img> 動態載入於此 -->
+          <!-- 文字或 <img> 動態載入 -->
         </div>
         <div id="radicalHint" class="text-slate-500 text-base mb-6">資料載入中...</div>
         <div class="inline-block bg-indigo-50 border border-indigo-200 rounded-lg px-6 py-3 text-indigo-800 text-sm font-medium">
@@ -125,28 +125,9 @@
   </div>
 
   <script>
-    // 已串接您提供的 Google Apps Script Web App API 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxyHAmn_-GO8_UFV4equ4vpZLLVX3OqKUnG_g77Rq3bMemKx4X8UFGaPNtzdRjVfbhX/exec";
 
-    // 預設備用資料庫
-    const defaultData = {
-      components: [
-        { Category: '五行類', Radical: '金', Key: '0', Hint: '0鍵：金部' },
-        { Category: '五行類', Radical: '木', Key: 'I', Hint: 'I鍵：木部' },
-        { Category: '五行類', Radical: '水', Key: 'X', Hint: 'X鍵：水部' },
-        { Category: '五行類', Radical: '火', Key: 'V', Hint: 'V鍵：火部' },
-        { Category: '五行類', Radical: '土', Key: 'F', Hint: 'F鍵：土部' }
-      ],
-      characters: [
-        { Category: '五行類', Character: '鑫', DayiKeys: '000', Breakdown: '金 + 金 + 金' },
-        { Category: '五行類', Character: '森', DayiKeys: 'III', Breakdown: '木 + 木 + 木' }
-      ],
-      articles: [
-        { ID: '1', Title: '預設測試句', Content: '工欲善其事必先利其器' }
-      ]
-    };
-
-    let dbData = defaultData;
+    let dbData = { components: [], characters: [], articles: [] };
     let currentMode = 'mode1';
     let correctCount = 0;
     let wrongCount = 0;
@@ -157,31 +138,38 @@
     let currentArticleIndex = 0;
     let mode2InputKeys = '';
 
+    // 提取 Google Drive 檔案 ID
+    function extractDriveId(url) {
+      if (!url) return null;
+      const str = String(url).trim();
+      const matches = str.match(/(?:file\/d\/|id=|open\?id=|\/d\/)([a-zA-Z0-9_-]{25,})/);
+      return matches ? matches[1] : null;
+    }
+
+    // 格式化圖片網址 (自動轉為高相容性直連網址)
+    function formatImageUrl(url) {
+      if (!url) return '';
+      let cleanUrl = String(url).trim();
+      
+      const driveId = extractDriveId(cleanUrl);
+      if (driveId) {
+        return `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`;
+      }
+      return cleanUrl;
+    }
+
     // 判斷是否為圖片網址
     function isImageUrl(url) {
-      if (typeof url !== 'string') return false;
-      const cleanUrl = url.trim().toLowerCase();
+      if (!url) return false;
+      const cleanUrl = String(url).trim().toLowerCase();
       return cleanUrl.startsWith('http://') || 
              cleanUrl.startsWith('https://') || 
              cleanUrl.startsWith('data:image/');
     }
 
-    // Google Drive 圖片連結轉直連 URL
-    function formatImageUrl(url) {
-      if (!url) return '';
-      let cleanUrl = String(url).trim();
-      if (cleanUrl.includes('drive.google.com') && cleanUrl.includes('/file/d/')) {
-        const idMatches = cleanUrl.match(/\/file\/d\/([^\/]+)/);
-        if (idMatches && idMatches[1]) {
-          return `https://lh3.googleusercontent.com/d/${idMatches[1]}`;
-        }
-      }
-      return cleanUrl;
-    }
-
-    // 非同步連線 API 讀取資料
+    // 非同步載入 Google Sheets 資料庫
     async function loadDatabase() {
-      showFeedback('⏳ 正在連接 Google Sheets 資料庫...', 'indigo');
+      showFeedback('⏳ 正在載入 Google Sheets 資料庫...', 'indigo');
       try {
         const res = await fetch(GAS_API_URL);
         const data = await res.json();
@@ -189,11 +177,11 @@
           dbData = data;
           showFeedback('✅ 資料庫載入成功！', 'emerald');
         } else {
-          showFeedback('⚠️ 取得空資料，使用預設備用庫', 'rose');
+          showFeedback('⚠️ 取得資料庫為空，請確認試算表內容', 'rose');
         }
       } catch (err) {
-        console.warn("無法讀取 API，切換至備用資料庫：", err);
-        showFeedback('⚠️ 連線失敗，使用本地備用資料', 'rose');
+        console.warn("無法存取 API：", err);
+        showFeedback('⚠️ 資料讀取失敗，請檢查 API 部署與權限', 'rose');
       }
       nextRadicalQuestion();
       loadArticles();
@@ -271,7 +259,16 @@
 
       if (isImageUrl(rawRadical)) {
         const imgUrl = formatImageUrl(rawRadical);
-        targetEl.innerHTML = `<img src="${imgUrl}" alt="部件圖片" class="max-h-24 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.parentNode.innerText='❌ 圖片載入失敗';">`;
+        const driveId = extractDriveId(rawRadical);
+        const fallbackUrl = driveId ? `https://lh3.googleusercontent.com/d/${driveId}` : '';
+
+        targetEl.innerHTML = `
+          <img src="${imgUrl}" 
+               alt="部件圖片" 
+               class="max-h-24 max-w-full object-contain mx-auto" 
+               referrerpolicy="no-referrer"
+               onerror="if('${fallbackUrl}' && this.src !== '${fallbackUrl}'){ this.src='${fallbackUrl}'; } else { this.onerror=null; this.parentNode.innerText='❌ 圖片載入失敗(請確認權限)'; }">
+        `;
       } else {
         targetEl.innerText = rawRadical;
       }
