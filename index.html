@@ -160,7 +160,7 @@
     async function loadDatabase() {
       if (!GAS_API_URL.includes("YOUR_DEPLOYED_WEB_APP_ID")) {
         try {
-          const res = await fetch(https://script.google.com/macros/s/AKfycbxyHAmn_-GO8_UFV4equ4vpZLLVX3OqKUnG_g77Rq3bMemKx4X8UFGaPNtzdRjVfbhX/exec);
+          const res = await fetch("https://script.google.com/macros/s/AKfycbxyHAmn_-GO8_UFV4equ4vpZLLVX3OqKUnG_g77Rq3bMemKx4X8UFGaPNtzdRjVfbhX/exec");
           const data = await res.json();
           if (data && data.components && data.components.length > 0) {
             dbData = data;
