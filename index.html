@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>大易輸入法練習</title>
+  <title>大易輸入法部件打字練習網頁</title>
   <!-- Tailwind CSS 快速打造現代化 UI -->
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -13,8 +13,8 @@
     <!-- 標題欄與設定區 -->
     <header class="bg-white rounded-xl shadow-md p-6 mb-6 border-b-4 border-indigo-500 flex flex-col lg:flex-row justify-between items-center gap-4">
       <div class="text-center lg:text-left">
-        <h1 class="text-3xl font-extrabold text-indigo-700 tracking-wide">北成國小學習教室大易輸入法打字練習</h1>
-        <p class="text-slate-500 mt-1 text-sm">已連線 API · 支援計時器設定、打字速度、E 欄錯誤紀錄與即時排行榜</p>
+        <h1 class="text-3xl font-extrabold text-indigo-700 tracking-wide">大易輸入法 · 部件分類打字練習網頁</h1>
+        <p class="text-slate-500 mt-1 text-sm">已連線 API · 各模式獨立根據分頁 A 欄篩選類別 · 支援英雄榜與 E 欄錯誤紀錄</p>
       </div>
       
       <!-- 設定選單區：姓名、計時器與排行榜按鈕 -->
@@ -40,39 +40,6 @@
         </button>
       </div>
     </header>
-
-    <!-- 部件類別勾選區 -->
-    <section class="bg-white rounded-xl shadow-md p-6 mb-6">
-      <h2 class="text-lg font-bold text-slate-700 mb-3 flex items-center gap-2">
-        <span>📌</span> 選擇練習部件類別（可多選）：
-      </h2>
-      <div id="categoryFilters" class="flex flex-wrap gap-4">
-        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
-          <input type="checkbox" value="五行類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">五行類</span>
-        </label>
-        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
-          <input type="checkbox" value="人類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">人類</span>
-        </label>
-        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
-          <input type="checkbox" value="動物類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">動物類</span>
-        </label>
-        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
-          <input type="checkbox" value="自然類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">自然類</span>
-        </label>
-        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
-          <input type="checkbox" value="農業類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">農業類</span>
-        </label>
-        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
-          <input type="checkbox" value="工藝其他類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">工藝其他類</span>
-        </label>
-      </div>
-    </section>
 
     <!-- 練習模式切換 Tab -->
     <div class="flex border-b border-slate-300 mb-6 gap-2">
@@ -106,35 +73,67 @@
       </div>
 
       <!-- 模式一：部件熟練練習 -->
-      <div id="practiceMode1" class="mode-content text-center py-6">
+      <div id="practiceMode1" class="mode-content text-center py-4">
         <div class="text-slate-400 text-sm mb-2">請按下對應的大易字根按鍵：</div>
         <div id="targetRadical" class="text-7xl font-extrabold text-indigo-600 my-4 h-28 flex items-center justify-center">
           <!-- 文字或 <img> 動態載入 -->
         </div>
         <div id="radicalHint" class="text-slate-500 text-base mb-6">資料載入中...</div>
-        <div class="inline-block bg-indigo-50 border border-indigo-200 rounded-lg px-6 py-3 text-indigo-800 text-sm font-medium">
+        <div class="inline-block bg-indigo-50 border border-indigo-200 rounded-lg px-6 py-3 text-indigo-800 text-sm font-medium mb-8">
           💡 請直接敲擊鍵盤按鍵進行輸入
         </div>
+
+        <!-- 部件熟練練習之部件類別選擇區 (從 COMPONENTS A 欄讀取) -->
+        <section class="border-t border-slate-100 pt-6 text-left">
+          <h3 class="text-md font-bold text-slate-700 mb-3 flex items-center gap-2">
+            <span>📌</span> 選擇練習部件類別（Components 分頁 A 欄可多選）：
+          </h3>
+          <div id="mode1CategoryFilters" class="flex flex-wrap gap-3">
+            <span class="text-slate-400 text-sm">載入類別中...</span>
+          </div>
+        </section>
       </div>
 
       <!-- 模式二：文字拆解練習 -->
-      <div id="practiceMode2" class="mode-content hidden text-center py-6">
+      <div id="practiceMode2" class="mode-content hidden text-center py-4">
         <div class="text-slate-400 text-sm mb-2">請依序輸入該字的大易拆碼：</div>
         <div id="targetCharacter" class="text-7xl font-extrabold text-indigo-600 my-4">-</div>
         <div id="charBreakdown" class="text-slate-500 text-sm mb-4">拆解提示：-</div>
-        <div id="charInputDisplay" class="text-2xl font-mono tracking-widest text-indigo-900 bg-slate-100 w-48 mx-auto py-2 rounded-lg border mb-4 h-12 flex items-center justify-center">
+        <div id="charInputDisplay" class="text-2xl font-mono tracking-widest text-indigo-900 bg-slate-100 w-48 mx-auto py-2 rounded-lg border mb-8 h-12 flex items-center justify-center">
           -
         </div>
+
+        <!-- 文字拆解練習之類別選擇區 (從 CHARACTERS A 欄讀取) -->
+        <section class="border-t border-slate-100 pt-6 text-left">
+          <h3 class="text-md font-bold text-slate-700 mb-3 flex items-center gap-2">
+            <span>📌</span> 選擇文字拆解類別（Characters 分頁 A 欄可多選）：
+          </h3>
+          <div id="mode2CategoryFilters" class="flex flex-wrap gap-3">
+            <span class="text-slate-400 text-sm">載入類別中...</span>
+          </div>
+        </section>
       </div>
 
       <!-- 模式三：文章打字練習 -->
       <div id="practiceMode3" class="mode-content hidden">
-        <div class="mb-4">
-          <label class="text-sm font-bold text-slate-600">選擇文章：</label>
-          <select id="articleSelect" onchange="loadArticle()" class="border rounded-lg px-3 py-2 text-sm bg-slate-50">
-            <!-- 動態載入文章 -->
-          </select>
+        <div class="flex flex-col sm:flex-row gap-4 mb-4">
+          <!-- 文章類別選擇器 (從 ARTICLES A 欄讀取) -->
+          <div class="flex-1">
+            <label for="articleCategorySelect" class="block text-sm font-bold text-slate-600 mb-1">📌 選擇文章類別 (Articles A 欄)：</label>
+            <select id="articleCategorySelect" onchange="onArticleCategoryChange()" class="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50 font-medium">
+              <option value="all">全部分類</option>
+            </select>
+          </div>
+
+          <!-- 文章選單 -->
+          <div class="flex-1">
+            <label for="articleSelect" class="block text-sm font-bold text-slate-600 mb-1">📄 選擇練習文章：</label>
+            <select id="articleSelect" onchange="loadArticle()" class="w-full border rounded-lg px-3 py-2 text-sm bg-slate-50 font-medium">
+              <!-- 動態載入文章 -->
+            </select>
+          </div>
         </div>
+
         <div id="articleDisplay" class="text-2xl leading-relaxed tracking-wider font-serif bg-slate-50 p-6 rounded-lg border min-h-[120px] mb-4">
           <!-- 動態載入文章字元 -->
         </div>
@@ -218,10 +217,18 @@
     let isTimerRunning = false;
     let isTimeUp = false;
 
-    // 排行榜當前篩選
+    // 排行榜變數
     let currentLbFilterMode = 'all';
-    let highlightTimestamp = null; // 用於高亮顯示剛剛上傳的紀錄
+    let highlightTimestamp = null;
 
+    // 通用：取得物件中第 1 個屬性 (即 A 欄) 的值
+    function getColAValue(itemObj) {
+      if (!itemObj) return '';
+      const keys = Object.keys(itemObj);
+      return keys.length > 0 ? String(itemObj[keys[0]] || '').trim() : '';
+    }
+
+    // 通用：取得物件中 E 欄（第 5 個屬性）資料的輔助函式
     function getColumnEValue(itemObj) {
       if (!itemObj) return '';
       if (itemObj.Hint !== undefined && itemObj.Hint !== '') return itemObj.Hint;
@@ -259,7 +266,7 @@
              cleanUrl.startsWith('data:image/');
     }
 
-    // --- 計時器邏輯 ---
+    // 計時器邏輯
     function startTimerIfNeeded() {
       if (isTimeUp) return false;
       if (!isTimerRunning) {
@@ -317,6 +324,7 @@
       isTimerRunning = false;
     }
 
+    // 載入資料庫與初始化分類選單
     async function loadDatabase() {
       showFeedback('⏳ 正在載入 Google Sheets 資料庫...', 'indigo');
       try {
@@ -325,6 +333,7 @@
         if (data && data.components && data.components.length > 0) {
           dbData = data;
           showFeedback('✅ 資料庫載入成功！', 'emerald');
+          renderAllCategoryFilters();
         } else {
           showFeedback('⚠️ 取得資料庫為空，請確認試算表內容', 'rose');
         }
@@ -336,19 +345,50 @@
       loadArticles();
     }
 
+    // 動態建構各模式專屬的類別篩選器 (根據各分頁 A 欄)
+    function renderAllCategoryFilters() {
+      // 1. 部件熟練練習類別 (Components A 欄)
+      const compCats = Array.from(new Set(dbData.components.map(c => getColAValue(c)).filter(Boolean)));
+      const mode1Container = document.getElementById('mode1CategoryFilters');
+      if (compCats.length > 0) {
+        mode1Container.innerHTML = compCats.map(cat => `
+          <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" value="${cat}" class="mode1-cb accent-indigo-600 rounded" checked onchange="nextRadicalQuestion()">
+            <span class="text-sm font-medium text-slate-700">${cat}</span>
+          </label>
+        `).join('');
+      } else {
+        mode1Container.innerHTML = '<span class="text-slate-400 text-sm">無類別資料</span>';
+      }
+
+      // 2. 文字拆解練習類別 (Characters A 欄)
+      const charCats = Array.from(new Set(dbData.characters.map(c => getColAValue(c)).filter(Boolean)));
+      const mode2Container = document.getElementById('mode2CategoryFilters');
+      if (charCats.length > 0) {
+        mode2Container.innerHTML = charCats.map(cat => `
+          <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+            <input type="checkbox" value="${cat}" class="mode2-cb accent-indigo-600 rounded" checked onchange="nextCharQuestion()">
+            <span class="text-sm font-medium text-slate-700">${cat}</span>
+          </label>
+        `).join('');
+      } else {
+        mode2Container.innerHTML = '<span class="text-slate-400 text-sm">無類別資料</span>';
+      }
+
+      // 3. 文章打字練習類別 (Articles A 欄)
+      const artCats = Array.from(new Set(dbData.articles.map(a => getColAValue(a)).filter(Boolean)));
+      const artCatSelect = document.getElementById('articleCategorySelect');
+      if (artCats.length > 0) {
+        artCatSelect.innerHTML = '<option value="all">全部分類</option>' + artCats.map(cat => `<option value="${cat}">${cat}</option>`).join('');
+      }
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
       setupEventListeners();
       loadDatabase();
     });
 
     function setupEventListeners() {
-      document.querySelectorAll('.category-checkbox').forEach(cb => {
-        cb.addEventListener('change', () => {
-          if (currentMode === 'mode1') nextRadicalQuestion();
-          if (currentMode === 'mode2') nextCharQuestion();
-        });
-      });
-
       document.addEventListener('keydown', (e) => {
         if (currentMode === 'mode1') {
           handleMode1KeyPress(e.key.toUpperCase());
@@ -362,9 +402,16 @@
       });
     }
 
-    function getSelectedCategories() {
-      const checkboxes = document.querySelectorAll('.category-checkbox:checked');
-      return Array.from(checkboxes).map(cb => cb.value);
+    // 取得 Mode 1 勾選之類別
+    function getMode1SelectedCategories() {
+      const cbs = document.querySelectorAll('.mode1-cb:checked');
+      return Array.from(cbs).map(cb => cb.value);
+    }
+
+    // 取得 Mode 2 勾選之類別
+    function getMode2SelectedCategories() {
+      const cbs = document.querySelectorAll('.mode2-cb:checked');
+      return Array.from(cbs).map(cb => cb.value);
     }
 
     function switchMode(mode) {
@@ -394,8 +441,8 @@
 
     // --- 模式 1：部件熟練練習 ---
     function nextRadicalQuestion() {
-      const selectedCats = getSelectedCategories();
-      const filtered = dbData.components.filter(c => selectedCats.includes(String(c.Category)));
+      const selectedCats = getMode1SelectedCategories();
+      const filtered = dbData.components.filter(c => selectedCats.includes(getColAValue(c)));
       const targetEl = document.getElementById('targetRadical');
 
       if (filtered.length === 0) {
@@ -455,8 +502,8 @@
 
     // --- 模式 2：文字拆解練習 ---
     function nextCharQuestion() {
-      const selectedCats = getSelectedCategories();
-      const filtered = dbData.characters.filter(c => selectedCats.includes(String(c.Category)));
+      const selectedCats = getMode2SelectedCategories();
+      const filtered = dbData.characters.filter(c => selectedCats.includes(getColAValue(c)));
 
       if (filtered.length === 0) {
         document.getElementById('targetCharacter').innerText = '⚠️';
@@ -516,13 +563,31 @@
     }
 
     // --- 模式 3：文章打字練習 ---
+    function onArticleCategoryChange() {
+      loadArticles();
+    }
+
     function loadArticles() {
       const select = document.getElementById('articleSelect');
+      const selectedCat = document.getElementById('articleCategorySelect').value;
+
       if (!dbData.articles || dbData.articles.length === 0) {
         select.innerHTML = '<option value="">無文章資料</option>';
         return;
       }
-      select.innerHTML = dbData.articles.map(a => `<option value="${a.ID}">${a.Title || '文章 ' + a.ID}</option>`).join('');
+
+      let filteredArticles = dbData.articles;
+      if (selectedCat !== 'all') {
+        filteredArticles = dbData.articles.filter(a => getColAValue(a) === selectedCat);
+      }
+
+      if (filteredArticles.length === 0) {
+        select.innerHTML = '<option value="">該類別無文章</option>';
+        document.getElementById('articleDisplay').innerText = '該類別尚無文章可供練習';
+        return;
+      }
+
+      select.innerHTML = filteredArticles.map(a => `<option value="${a.ID}">${a.Title || '文章 ' + a.ID}</option>`).join('');
       loadArticle();
     }
 
@@ -639,7 +704,6 @@
           showFeedback('🎉 成績已成功記錄！正在載入排行榜...', 'emerald');
           highlightTimestamp = result.timestamp;
           
-          // 重新載入最新資料庫並開啟排行榜 Modal，篩選至當前模式
           await loadDatabase();
           openLeaderboardModal(currentModeName);
         } else {
@@ -654,7 +718,7 @@
       }
     }
 
-    // --- 排行榜 Modal 相關邏輯 ---
+    // 排行榜 Modal 相關邏輯
     function openLeaderboardModal(defaultMode = 'all') {
       document.getElementById('leaderboardModal').classList.remove('hidden');
       filterLeaderboard(defaultMode);
@@ -697,12 +761,10 @@
       const tbody = document.getElementById('leaderboardTbody');
       let records = dbData.records || [];
 
-      // 過濾模式
       if (currentLbFilterMode !== 'all') {
         records = records.filter(r => String(r['練習模式'] || r['Mode'] || '').trim() === currentLbFilterMode);
       }
 
-      // 排序：打字速度降序 -> 正確率降序
       records.sort((a, b) => {
         const speedA = parseSpeed(a['打字速度'] || a['Speed']);
         const speedB = parseSpeed(b['打字速度'] || b['Speed']);
