@@ -13,7 +13,7 @@
     <!-- 標題欄 -->
     <header class="bg-white rounded-xl shadow-md p-6 mb-6 text-center border-b-4 border-indigo-500">
       <h1 class="text-3xl font-extrabold text-indigo-700 tracking-wide">大易輸入法 · 部件分類打字練習網頁</h1>
-      <p class="text-slate-500 mt-2 text-sm">已連線 Google Sheets 資料庫 · 支援圖片/文字部件、拆解與文章打字練習</p>
+      <p class="text-slate-500 mt-2 text-sm">已連線最新 Google Sheets API · 支援圖檔/文字部件、拆解與文章打字練習</p>
     </header>
 
     <!-- 部件類別勾選區 -->
@@ -125,7 +125,8 @@
   </div>
 
   <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxyHAmn_-GO8_UFV4equ4vpZLLVX3OqKUnG_g77Rq3bMemKx4X8UFGaPNtzdRjVfbhX/exec";
+    // 套用您最新部署的 GAS Web App API 網址
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxxjVK9FG9oGAe0Tk5Odcrnf3MQDHQt5eB6tGwC2DbGz6aaGhwD2a7dm17hfrKV7UFy/exec";
 
     let dbData = { components: [], characters: [], articles: [] };
     let currentMode = 'mode1';
@@ -146,7 +147,7 @@
       return matches ? matches[1] : null;
     }
 
-    // 格式化圖片網址 (自動轉為高相容性直連網址)
+    // 格式化圖片網址 (自動轉為高相容性縮圖直連網址)
     function formatImageUrl(url) {
       if (!url) return '';
       let cleanUrl = String(url).trim();
@@ -171,7 +172,7 @@
     async function loadDatabase() {
       showFeedback('⏳ 正在載入 Google Sheets 資料庫...', 'indigo');
       try {
-        const res = await fetch(GAS_API_URL);
+        const res = await fetch("https://script.google.com/macros/s/AKfycbxxjVK9FG9oGAe0Tk5Odcrnf3MQDHQt5eB6tGwC2DbGz6aaGhwD2a7dm17hfrKV7UFy/exec");
         const data = await res.json();
         if (data && data.components && data.components.length > 0) {
           dbData = data;
