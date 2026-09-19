@@ -10,10 +10,17 @@
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
 
   <div class="max-w-5xl mx-auto p-4 md:p-6">
-    <!-- 標題欄 -->
-    <header class="bg-white rounded-xl shadow-md p-6 mb-6 text-center border-b-4 border-indigo-500">
-      <h1 class="text-3xl font-extrabold text-indigo-700 tracking-wide">大易輸入法 · 部件分類打字練習網頁</h1>
-      <p class="text-slate-500 mt-2 text-sm">已連線最新 Google Sheets API · 支援圖檔/文字部件、拆解與文章打字練習</p>
+    <!-- 標題欄與姓名輸入區 -->
+    <header class="bg-white rounded-xl shadow-md p-6 mb-6 border-b-4 border-indigo-500 flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="text-center md:text-left">
+        <h1 class="text-3xl font-extrabold text-indigo-700 tracking-wide">大易輸入法 · 部件分類打字練習網頁</h1>
+        <p class="text-slate-500 mt-1 text-sm">已連線 Google Sheets API · 支援成績與題目寫入 record 分頁</p>
+      </div>
+      <!-- 姓名輸入框 -->
+      <div class="flex items-center gap-2 bg-slate-50 border border-slate-300 rounded-lg px-4 py-2">
+        <label for="userName" class="text-sm font-bold text-slate-700 whitespace-nowrap">👤 姓名：</label>
+        <input type="text" id="userName" placeholder="請輸入姓名" class="bg-white border border-slate-300 rounded px-2 py-1 text-sm focus:outline-none focus:border-indigo-600 font-medium w-36">
+      </div>
     </header>
 
     <!-- 部件類別勾選區 -->
@@ -25,6 +32,10 @@
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="五行類" class="category-checkbox accent-indigo-600 rounded" checked>
           <span class="font-medium text-slate-700">五行類</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="人員類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">人員類</span>
         </label>
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="人類" class="category-checkbox accent-indigo-600 rounded" checked>
@@ -41,6 +52,10 @@
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="農業類" class="category-checkbox accent-indigo-600 rounded" checked>
           <span class="font-medium text-slate-700">農業類</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="工藝類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">工藝類</span>
         </label>
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="工藝其他類" class="category-checkbox accent-indigo-600 rounded" checked>
@@ -65,14 +80,17 @@
     <!-- 練習主區域 -->
     <main class="bg-white rounded-xl shadow-md p-8 min-h-[350px] relative">
 
-      <!-- 統計數據面板 -->
-      <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100 text-sm md:text-base">
+      <!-- 統計數據與送出成績面板 -->
+      <div class="flex flex-col sm:flex-row justify-between items-center mb-6 pb-4 border-b border-slate-100 gap-4 text-sm md:text-base">
         <div class="flex gap-6">
           <span class="text-slate-500">正確數：<strong id="correctCount" class="text-emerald-600 text-lg">0</strong></span>
           <span class="text-slate-500">錯誤數：<strong id="wrongCount" class="text-rose-600 text-lg">0</strong></span>
           <span class="text-slate-500">正確率：<strong id="accuracy" class="text-indigo-600 text-lg">100%</strong></span>
         </div>
-        <button onclick="resetStats()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-600 px-3 py-1.5 rounded-md">重新統計</button>
+        <div class="flex gap-2">
+          <button onclick="resetStats()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-600 px-3 py-1.5 rounded-md">重新統計</button>
+          <button id="btnSubmitRecord" onclick="submitRecord()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-md shadow-sm transition">📤 送出成績至 record</button>
+        </div>
       </div>
 
       <!-- 模式一：部件熟練練習 (支援圖片顯示) -->
@@ -117,7 +135,6 @@
   </div>
 
   <script>
-    // 套用您最新部署的 GAS Web App API 網址
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxxjVK9FG9oGAe0Tk5Odcrnf3MQDHQt5eB6tGwC2DbGz6aaGhwD2a7dm17hfrKV7UFy/exec";
 
     let dbData = { components: [], characters: [], articles: [] };
@@ -125,13 +142,16 @@
     let correctCount = 0;
     let wrongCount = 0;
 
+    // 新增：儲存答對與答錯題目的清單陣列
+    let correctItems = [];
+    let wrongItems = [];
+
     let currentRadicalObj = null;
     let currentCharObj = null;
     let currentArticleText = '';
     let currentArticleIndex = 0;
     let mode2InputKeys = '';
 
-    // 提取 Google Drive 檔案 ID
     function extractDriveId(url) {
       if (!url) return null;
       const str = String(url).trim();
@@ -139,11 +159,9 @@
       return matches ? matches[1] : null;
     }
 
-    // 格式化圖片網址 (自動轉為高相容性縮圖直連網址)
     function formatImageUrl(url) {
       if (!url) return '';
       let cleanUrl = String(url).trim();
-      
       const driveId = extractDriveId(cleanUrl);
       if (driveId) {
         return `https://drive.google.com/thumbnail?id=${driveId}&sz=w1000`;
@@ -151,7 +169,6 @@
       return cleanUrl;
     }
 
-    // 判斷是否為圖片網址
     function isImageUrl(url) {
       if (!url) return false;
       const cleanUrl = String(url).trim().toLowerCase();
@@ -160,11 +177,10 @@
              cleanUrl.startsWith('data:image/');
     }
 
-    // 非同步載入 Google Sheets 資料庫
     async function loadDatabase() {
       showFeedback('⏳ 正在載入 Google Sheets 資料庫...', 'indigo');
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbxxjVK9FG9oGAe0Tk5Odcrnf3MQDHQt5eB6tGwC2DbGz6aaGhwD2a7dm17hfrKV7UFy/exec");
+        const res = await fetch("https://script.google.com/macros/s/AKfycbxETeYDSIPZ9bHDT7tancCOB_0X_d6yALdojQt-0LPmug4aQfXS1TGs39EbRcA1WMaM/exec");
         const data = await res.json();
         if (data && data.components && data.components.length > 0) {
           dbData = data;
@@ -273,13 +289,17 @@
       if (!currentRadicalObj) return;
 
       const targetKey = String(currentRadicalObj.Key || '').trim().toUpperCase();
+      const itemLabel = currentRadicalObj.Hint ? `${currentRadicalObj.Hint.split('：')[1] || currentRadicalObj.Radical}(${targetKey})` : `${currentRadicalObj.Radical}(${targetKey})`;
+
       if (key === targetKey) {
         showFeedback('✨ 正確！', 'emerald');
         correctCount++;
+        correctItems.push(itemLabel);
         nextRadicalQuestion();
       } else if (/^[A-Z0-9;,.\/]$/.test(key)) {
         showFeedback(`❌ 錯誤！按鍵應為 ${targetKey}`, 'rose');
         wrongCount++;
+        wrongItems.push(itemLabel);
       }
       updateStats();
     }
@@ -317,13 +337,17 @@
         updateMode2Display();
 
         const targetKeys = String(currentCharObj.DayiKeys).trim().toUpperCase();
+        const itemLabel = `${currentCharObj.Character}[${targetKeys}]`;
+
         if (mode2InputKeys === targetKeys) {
           showFeedback('🎉 拆解正確！', 'emerald');
           correctCount++;
+          correctItems.push(itemLabel);
           setTimeout(nextCharQuestion, 800);
         } else if (!targetKeys.startsWith(mode2InputKeys)) {
           showFeedback(`❌ 拆解錯誤！正確為 ${targetKeys}`, 'rose');
           wrongCount++;
+          wrongItems.push(itemLabel);
           mode2InputKeys = '';
           setTimeout(updateMode2Display, 1000);
         }
@@ -377,12 +401,14 @@
 
       if (inputChar === targetChar) {
         correctCount++;
+        correctItems.push(targetChar);
         currentArticleIndex++;
         if (currentArticleIndex >= currentArticleText.length) {
           showFeedback('🏆 完成文章打字！', 'emerald');
         }
       } else {
         wrongCount++;
+        wrongItems.push(`錯打「${inputChar}」(原字：${targetChar})`);
         showFeedback(`錯字！應輸入：「${targetChar}」`, 'rose');
       }
 
@@ -391,11 +417,67 @@
       renderArticleDisplay();
     }
 
+    // 送出成績至 Google Sheets 的 record 分頁
+    async function submitRecord() {
+      const userName = document.getElementById('userName').value.trim();
+      if (!userName) {
+        showFeedback('⚠️ 請先在右上角輸入姓名再送出成績！', 'rose');
+        document.getElementById('userName').focus();
+        return;
+      }
+
+      if (correctCount + wrongCount === 0) {
+        showFeedback('⚠️ 目前尚無練習紀錄，請先開始答題！', 'rose');
+        return;
+      }
+
+      const modeMap = {
+        'mode1': '部件熟練練習',
+        'mode2': '文字拆解練習',
+        'mode3': '文章打字練習'
+      };
+
+      const payload = {
+        name: userName,
+        mode: modeMap[currentMode] || currentMode,
+        accuracy: document.getElementById('accuracy').innerText,
+        correctCount: correctCount,
+        wrongCount: wrongCount,
+        correctItems: correctItems,
+        wrongItems: wrongItems
+      };
+
+      const btn = document.getElementById('btnSubmitRecord');
+      btn.disabled = true;
+      btn.innerText = '⏳ 送出中...';
+      showFeedback('⏳ 正在儲存成績至 Google Sheets...', 'indigo');
+
+      try {
+        const res = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (result.status === 'success') {
+          showFeedback('🎉 成績與答題紀錄已成功寫入 record 分頁！', 'emerald');
+        } else {
+          showFeedback('⚠️ 儲存失敗：' + result.message, 'rose');
+        }
+      } catch (err) {
+        console.error("送出成績錯誤：", err);
+        showFeedback('⚠️ 送出成績失敗，請確認 API 部署與權限', 'rose');
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '📤 送出成績至 record';
+      }
+    }
+
     function showFeedback(msg, color) {
       const el = document.getElementById('feedbackMsg');
       el.innerText = msg;
       el.className = `mt-4 text-center font-bold text-lg text-${color}-600`;
-      setTimeout(() => { if (el.innerText === msg) el.innerText = ''; }, 2000);
+      setTimeout(() => { if (el.innerText === msg) el.innerText = ''; }, 2500);
     }
 
     function updateStats() {
@@ -409,6 +491,8 @@
     function resetStats() {
       correctCount = 0;
       wrongCount = 0;
+      correctItems = [];
+      wrongItems = [];
       updateStats();
     }
   </script>
