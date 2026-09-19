@@ -13,7 +13,7 @@
     <!-- 標題欄 -->
     <header class="bg-white rounded-xl shadow-md p-6 mb-6 text-center border-b-4 border-indigo-500">
       <h1 class="text-3xl font-extrabold text-indigo-700 tracking-wide">大易輸入法 · 部件分類打字練習網頁</h1>
-      <p class="text-slate-500 mt-2 text-sm">結合 Google Sheets 資料庫 · 支援部件熟練、文字拆解與文章打字練習</p>
+      <p class="text-slate-500 mt-2 text-sm">已連線 Google Sheets 資料庫 · 支援圖片/文字部件、拆解與文章打字練習</p>
     </header>
 
     <!-- 部件類別勾選區 -->
@@ -27,8 +27,12 @@
           <span class="font-medium text-slate-700">五行類 (金/木/水/火/土)</span>
         </label>
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="人員類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">人員類 (人/手/目/口/立/心)</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="人類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">人類 (人/手/目/口/立/心)</span>
+          <span class="font-medium text-slate-700">人類</span>
         </label>
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="動物類" class="category-checkbox accent-indigo-600 rounded" checked>
@@ -43,8 +47,12 @@
           <span class="font-medium text-slate-700">農業類 (禾/竹/草)</span>
         </label>
         <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
+          <input type="checkbox" value="工藝類" class="category-checkbox accent-indigo-600 rounded" checked>
+          <span class="font-medium text-slate-700">工藝類</span>
+        </label>
+        <label class="inline-flex items-center space-x-2 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 cursor-pointer hover:bg-indigo-50">
           <input type="checkbox" value="工藝其他類" class="category-checkbox accent-indigo-600 rounded" checked>
-          <span class="font-medium text-slate-700">工藝其他類 (車/舟/言/革/弓)</span>
+          <span class="font-medium text-slate-700">工藝其他類</span>
         </label>
       </div>
     </section>
@@ -75,11 +83,13 @@
         <button onclick="resetStats()" class="text-xs bg-slate-200 hover:bg-slate-300 text-slate-600 px-3 py-1.5 rounded-md">重新統計</button>
       </div>
 
-      <!-- 模式一：部件熟練練習 -->
+      <!-- 模式一：部件熟練練習 (支援圖片顯示) -->
       <div id="practiceMode1" class="mode-content text-center py-6">
         <div class="text-slate-400 text-sm mb-2">請按下對應的大易字根按鍵：</div>
-        <div id="targetRadical" class="text-7xl font-extrabold text-indigo-600 my-4 h-24 flex items-center justify-center">艹</div>
-        <div id="radicalHint" class="text-slate-500 text-base mb-6">（提示：輔助字根 / U 鍵）</div>
+        <div id="targetRadical" class="text-7xl font-extrabold text-indigo-600 my-4 h-28 flex items-center justify-center">
+          <!-- 文字或 <img> 動態載入於此 -->
+        </div>
+        <div id="radicalHint" class="text-slate-500 text-base mb-6">資料載入中...</div>
         <div class="inline-block bg-indigo-50 border border-indigo-200 rounded-lg px-6 py-3 text-indigo-800 text-sm font-medium">
           💡 請直接敲擊鍵盤按鍵進行輸入
         </div>
@@ -88,8 +98,8 @@
       <!-- 模式二：文字拆解練習 -->
       <div id="practiceMode2" class="mode-content hidden text-center py-6">
         <div class="text-slate-400 text-sm mb-2">請依序輸入該字的大易拆碼：</div>
-        <div id="targetCharacter" class="text-7xl font-extrabold text-indigo-600 my-4">明</div>
-        <div id="charBreakdown" class="text-slate-500 text-sm mb-4">拆解提示：日 + 月</div>
+        <div id="targetCharacter" class="text-7xl font-extrabold text-indigo-600 my-4">-</div>
+        <div id="charBreakdown" class="text-slate-500 text-sm mb-4">拆解提示：-</div>
         <div id="charInputDisplay" class="text-2xl font-mono tracking-widest text-indigo-900 bg-slate-100 w-48 mx-auto py-2 rounded-lg border mb-4 h-12 flex items-center justify-center">
           -
         </div>
@@ -115,33 +125,24 @@
   </div>
 
   <script>
-    // 請將下方的網址替換為部署好的 GAS Web App 網址（結尾必須為 /exec）
-    const GAS_API_URL = "https://script.google.com/macros/s/YOUR_DEPLOYED_WEB_APP_ID/exec";
+    // 已串接您提供的 Google Apps Script Web App API 網址
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxyHAmn_-GO8_UFV4equ4vpZLLVX3OqKUnG_g77Rq3bMemKx4X8UFGaPNtzdRjVfbhX/exec";
 
-    // 預設備用資料庫（當 API 載入失敗或未填寫網址時自動啟用）
+    // 預設備用資料庫
     const defaultData = {
       components: [
         { Category: '五行類', Radical: '金', Key: '0', Hint: '0鍵：金部' },
         { Category: '五行類', Radical: '木', Key: 'I', Hint: 'I鍵：木部' },
         { Category: '五行類', Radical: '水', Key: 'X', Hint: 'X鍵：水部' },
         { Category: '五行類', Radical: '火', Key: 'V', Hint: 'V鍵：火部' },
-        { Category: '五行類', Radical: '土', Key: 'F', Hint: 'F鍵：土部' },
-        { Category: '人類', Radical: '人', Key: 'A', Hint: 'A鍵：人部' },
-        { Category: '人類', Radical: '手', Key: 'Q', Hint: 'Q鍵：手部' },
-        { Category: '動物類', Radical: '牛', Key: '2', Hint: '2鍵：牛部' },
-        { Category: '自然類', Radical: '日', Key: 'O', Hint: 'O鍵：日部' },
-        { Category: '農業類', Radical: '艹', Key: 'U', Hint: 'U鍵：草字頭' },
-        { Category: '工藝其他類', Radical: '車', Key: ',', Hint: ',鍵：車部' }
+        { Category: '五行類', Radical: '土', Key: 'F', Hint: 'F鍵：土部' }
       ],
       characters: [
         { Category: '五行類', Character: '鑫', DayiKeys: '000', Breakdown: '金 + 金 + 金' },
-        { Category: '五行類', Character: '森', DayiKeys: 'III', Breakdown: '木 + 木 + 木' },
-        { Category: '自然類', Character: '明', DayiKeys: 'OJ', Breakdown: '日 + 月' },
-        { Category: '人類', Character: '休', DayiKeys: 'AI', Breakdown: '人 + 木' }
+        { Category: '五行類', Character: '森', DayiKeys: 'III', Breakdown: '木 + 木 + 木' }
       ],
       articles: [
-        { ID: '1', Title: '基礎部件練習句', Content: '工欲善其事必先利其器大易輸入法部件練習' },
-        { ID: '2', Title: '五行自然句', Content: '金木水火土日月照大地' }
+        { ID: '1', Title: '預設測試句', Content: '工欲善其事必先利其器' }
       ]
     };
 
@@ -156,19 +157,43 @@
     let currentArticleIndex = 0;
     let mode2InputKeys = '';
 
-    // 非同步載入 Google Sheets 資料庫
-    async function loadDatabase() {
-      if (!GAS_API_URL.includes("AKfycbxyHAmn_-GO8_UFV4equ4vpZLLVX3OqKUnG_g77Rq3bMemKx4X8UFGaPNtzdRjVfbhX")) {
-        try {
-          const res = await fetch("https://script.google.com/macros/s/AKfycbxyHAmn_-GO8_UFV4equ4vpZLLVX3OqKUnG_g77Rq3bMemKx4X8UFGaPNtzdRjVfbhX/exec");
-          const data = await res.json();
-          if (data && data.components && data.components.length > 0) {
-            dbData = data;
-            console.log("已成功從 Google Sheets 載入最新資料庫！");
-          }
-        } catch (err) {
-          console.warn("無法連接 Google Sheets API，將使用本地備用資料。", err);
+    // 判斷是否為圖片網址
+    function isImageUrl(url) {
+      if (typeof url !== 'string') return false;
+      const cleanUrl = url.trim().toLowerCase();
+      return cleanUrl.startsWith('http://') || 
+             cleanUrl.startsWith('https://') || 
+             cleanUrl.startsWith('data:image/');
+    }
+
+    // Google Drive 圖片連結轉直連 URL
+    function formatImageUrl(url) {
+      if (!url) return '';
+      let cleanUrl = String(url).trim();
+      if (cleanUrl.includes('drive.google.com') && cleanUrl.includes('/file/d/')) {
+        const idMatches = cleanUrl.match(/\/file\/d\/([^\/]+)/);
+        if (idMatches && idMatches[1]) {
+          return `https://lh3.googleusercontent.com/d/${idMatches[1]}`;
         }
+      }
+      return cleanUrl;
+    }
+
+    // 非同步連線 API 讀取資料
+    async function loadDatabase() {
+      showFeedback('⏳ 正在連接 Google Sheets 資料庫...', 'indigo');
+      try {
+        const res = await fetch(GAS_API_URL);
+        const data = await res.json();
+        if (data && data.components && data.components.length > 0) {
+          dbData = data;
+          showFeedback('✅ 資料庫載入成功！', 'emerald');
+        } else {
+          showFeedback('⚠️ 取得空資料，使用預設備用庫', 'rose');
+        }
+      } catch (err) {
+        console.warn("無法讀取 API，切換至備用資料庫：", err);
+        showFeedback('⚠️ 連線失敗，使用本地備用資料', 'rose');
       }
       nextRadicalQuestion();
       loadArticles();
@@ -231,29 +256,39 @@
     // --- 模式 1：部件熟練練習 ---
     function nextRadicalQuestion() {
       const selectedCats = getSelectedCategories();
-      const filtered = dbData.components.filter(c => selectedCats.includes(c.Category));
+      const filtered = dbData.components.filter(c => selectedCats.includes(String(c.Category)));
+      const targetEl = document.getElementById('targetRadical');
 
       if (filtered.length === 0) {
-        document.getElementById('targetRadical').innerText = '⚠️';
+        targetEl.innerText = '⚠️';
         document.getElementById('radicalHint').innerText = '請至少勾選一個部件類別';
         currentRadicalObj = null;
         return;
       }
 
       currentRadicalObj = filtered[Math.floor(Math.random() * filtered.length)];
-      document.getElementById('targetRadical').innerText = currentRadicalObj.Radical;
+      const rawRadical = String(currentRadicalObj.Radical || '');
+
+      if (isImageUrl(rawRadical)) {
+        const imgUrl = formatImageUrl(rawRadical);
+        targetEl.innerHTML = `<img src="${imgUrl}" alt="部件圖片" class="max-h-24 max-w-full object-contain mx-auto" onerror="this.onerror=null; this.parentNode.innerText='❌ 圖片載入失敗';">`;
+      } else {
+        targetEl.innerText = rawRadical;
+      }
+
       document.getElementById('radicalHint').innerText = `（提示：${currentRadicalObj.Hint || currentRadicalObj.Key + ' 鍵'}）`;
     }
 
     function handleMode1KeyPress(key) {
       if (!currentRadicalObj) return;
 
-      if (key === currentRadicalObj.Key.toUpperCase()) {
+      const targetKey = String(currentRadicalObj.Key || '').trim().toUpperCase();
+      if (key === targetKey) {
         showFeedback('✨ 正確！', 'emerald');
         correctCount++;
         nextRadicalQuestion();
       } else if (/^[A-Z0-9;,.\/]$/.test(key)) {
-        showFeedback(`❌ 錯誤！按鍵應為 ${currentRadicalObj.Key}`, 'rose');
+        showFeedback(`❌ 錯誤！按鍵應為 ${targetKey}`, 'rose');
         wrongCount++;
       }
       updateStats();
@@ -262,7 +297,7 @@
     // --- 模式 2：文字拆解練習 ---
     function nextCharQuestion() {
       const selectedCats = getSelectedCategories();
-      const filtered = dbData.characters.filter(c => selectedCats.includes(c.Category));
+      const filtered = dbData.characters.filter(c => selectedCats.includes(String(c.Category)));
 
       if (filtered.length === 0) {
         document.getElementById('targetCharacter').innerText = '⚠️';
@@ -273,7 +308,7 @@
 
       currentCharObj = filtered[Math.floor(Math.random() * filtered.length)];
       document.getElementById('targetCharacter').innerText = currentCharObj.Character;
-      document.getElementById('charBreakdown').innerText = `部件拆解：${currentCharObj.Breakdown}`;
+      document.getElementById('charBreakdown').innerText = `部件拆解：${currentCharObj.Breakdown || '無拆解提示'}`;
       mode2InputKeys = '';
       updateMode2Display();
     }
@@ -291,7 +326,7 @@
         mode2InputKeys += key;
         updateMode2Display();
 
-        const targetKeys = String(currentCharObj.DayiKeys).toUpperCase();
+        const targetKeys = String(currentCharObj.DayiKeys).trim().toUpperCase();
         if (mode2InputKeys === targetKeys) {
           showFeedback('🎉 拆解正確！', 'emerald');
           correctCount++;
@@ -313,14 +348,18 @@
     // --- 模式 3：文章打字練習 ---
     function loadArticles() {
       const select = document.getElementById('articleSelect');
-      select.innerHTML = dbData.articles.map(a => `<option value="${a.ID}">${a.Title}</option>`).join('');
+      if (!dbData.articles || dbData.articles.length === 0) {
+        select.innerHTML = '<option value="">無文章資料</option>';
+        return;
+      }
+      select.innerHTML = dbData.articles.map(a => `<option value="${a.ID}">${a.Title || '文章 ' + a.ID}</option>`).join('');
       loadArticle();
     }
 
     function loadArticle() {
       const selectId = document.getElementById('articleSelect').value;
       const article = dbData.articles.find(a => a.ID == selectId) || dbData.articles[0];
-      currentArticleText = article ? article.Content : '';
+      currentArticleText = article ? String(article.Content) : '';
       currentArticleIndex = 0;
       document.getElementById('mode3Input').value = '';
       renderArticleDisplay();
@@ -366,7 +405,7 @@
       const el = document.getElementById('feedbackMsg');
       el.innerText = msg;
       el.className = `mt-4 text-center font-bold text-lg text-${color}-600`;
-      setTimeout(() => { el.innerText = ''; }, 1500);
+      setTimeout(() => { if (el.innerText === msg) el.innerText = ''; }, 2000);
     }
 
     function updateStats() {
