@@ -193,7 +193,7 @@
   </div>
 
   <script>
-    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxETeYDSIPZ9bHDT7tancCOB_0X_d6yALdojQt-0LPmug4aQfXS1TGs39EbRcA1WMaM/exec";
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxRAGkZGPA2l9YckWkGyvRy_HA-InmhzQ4V7ErAO37VJvMjSrg_oFQvrBcVIsZapRgN/exec";
 
     let dbData = { components: [], characters: [], articles: [], records: [] };
     let currentMode = 'mode1';
@@ -323,24 +323,63 @@
       isTimerRunning = false;
     }
 
-    async function loadDatabase() {
-      showFeedback('⏳ 正在載入 Google Sheets 資料庫...', 'indigo');
+    async function fetchWithTimeout(url, options = {}, timeout = 12000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeout);
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbxRAGkZGPA2l9YckWkGyvRy_HA-InmhzQ4V7ErAO37VJvMjSrg_oFQvrBcVIsZapRgN/exec");
+        return await fetch(url, { ...options, signal: controller.signal });
+      } finally {
+        clearTimeout(timer);
+      }
+    }
+
+    async function loadDatabase() {
+      showFeedback('⏳ 正在載入練習資料...', 'indigo');
+      try {
+        const res = await fetchWithTimeout(`${GAS_API_URL}?action=init`, {}, 12000);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
         const data = await res.json();
         if (data && data.components && data.components.length > 0) {
-          dbData = data;
-          showFeedback('✅ 資料庫載入成功！', 'emerald');
+          // 首頁只保留練習資料；排行榜按下時才另外載入
+          dbData.components = data.components || [];
+          dbData.characters = data.characters || [];
+          dbData.articles = data.articles || [];
+          dbData.records = [];
+
+          showFeedback('✅ 練習資料載入成功！', 'emerald');
           renderAllCategoryFilters();
+          preloadRadicalImages();
         } else {
-          showFeedback('⚠️ 取得資料庫為空，請確認試算表內容', 'rose');
+          showFeedback('⚠️ 取得練習資料為空，請確認試算表內容', 'rose');
         }
       } catch (err) {
         console.warn("無法存取 API：", err);
-        showFeedback('⚠️ 資料讀取失敗，請檢查 API 部署與權限', 'rose');
+        const msg = err && err.name === 'AbortError'
+          ? '⚠️ 資料庫回應逾時，請稍後重新整理'
+          : '⚠️ 資料讀取失敗，請檢查 API 部署與權限';
+        showFeedback(msg, 'rose');
       }
+
       nextRadicalQuestion();
       loadArticles();
+    }
+
+    // 背景預載少量部件圖片，避免第一題遇到圖片時才開始下載
+    function preloadRadicalImages(limit = 12) {
+      const urls = [];
+      for (const item of dbData.components) {
+        const raw = String(item.Radical || '').trim();
+        if (!isImageUrl(raw)) continue;
+        const url = formatImageUrl(raw);
+        if (url && !urls.includes(url)) urls.push(url);
+        if (urls.length >= limit) break;
+      }
+      urls.forEach(url => {
+        const img = new Image();
+        img.referrerPolicy = 'no-referrer';
+        img.src = url;
+      });
     }
 
     function renderAllCategoryFilters() {
@@ -716,18 +755,17 @@
       showFeedback('⏳ 正在儲存成績至 Google Sheets...', 'indigo');
 
       try {
-        const res = await fetch("https://script.google.com/macros/s/AKfycbxRAGkZGPA2l9YckWkGyvRy_HA-InmhzQ4V7ErAO37VJvMjSrg_oFQvrBcVIsZapRgN/exec", {
+        const res = await fetchWithTimeout(GAS_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(payload)
-        });
+        }, 12000);
         const result = await res.json();
         if (result.status === 'success') {
           showFeedback('🎉 成績已成功記錄！正在載入排行榜...', 'emerald');
           highlightTimestamp = result.timestamp;
           
-          await loadDatabase();
-          openLeaderboardModal(currentModeName);
+          await openLeaderboardModal(currentModeName);
         } else {
           showFeedback('⚠️ 儲存失敗：' + result.message, 'rose');
         }
@@ -741,9 +779,44 @@
     }
 
     // 排行榜 Modal 相關邏輯
-    function openLeaderboardModal(defaultMode = 'all') {
-      document.getElementById('leaderboardModal').classList.remove('hidden');
-      filterLeaderboard(defaultMode);
+    async function openLeaderboardModal(defaultMode = 'all') {
+      const modal = document.getElementById('leaderboardModal');
+      const tbody = document.getElementById('leaderboardTbody');
+
+      modal.classList.remove('hidden');
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="text-center py-8 text-slate-400">
+            ⏳ 排行榜載入中...
+          </td>
+        </tr>
+      `;
+
+      try {
+        const res = await fetchWithTimeout(`${GAS_API_URL}?action=leaderboard`, {}, 12000);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const data = await res.json();
+        if (data.status === 'success' || Array.isArray(data.records)) {
+          dbData.records = data.records || [];
+          filterLeaderboard(defaultMode);
+        } else {
+          throw new Error(data.message || '排行榜讀取失敗');
+        }
+      } catch (err) {
+        console.error('排行榜載入錯誤：', err);
+        const msg = err && err.name === 'AbortError'
+          ? '排行榜讀取逾時，請稍後再試'
+          : '排行榜載入失敗，請稍後再試';
+
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="text-center py-8 text-rose-500">
+              ⚠️ ${msg}
+            </td>
+          </tr>
+        `;
+      }
     }
 
     function closeLeaderboardModal() {
@@ -781,7 +854,7 @@
 
     function renderLeaderboard() {
       const tbody = document.getElementById('leaderboardTbody');
-      let records = dbData.records || [];
+      let records = [...(dbData.records || [])];
 
       if (currentLbFilterMode !== 'all') {
         records = records.filter(r => String(r['練習模式'] || r['Mode'] || '').trim() === currentLbFilterMode);
