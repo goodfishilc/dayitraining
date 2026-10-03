@@ -6,6 +6,77 @@
   <title>大易輸入法打字練習</title>
   <!-- Tailwind CSS 快速打造現代化 UI -->
   <script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* 手機螢幕鍵盤 */
+  .screen-key {
+    width: clamp(29px, 8.3vw, 52px);
+    height: clamp(42px, 11vw, 56px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: white;
+    border: 1px solid #cbd5e1;
+    border-bottom-width: 3px;
+    border-radius: 8px;
+
+    font-size: clamp(14px, 4vw, 20px);
+    font-weight: 700;
+
+    color: #334155;
+
+    box-shadow: 0 2px 3px rgba(0,0,0,.08);
+
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+
+    user-select: none;
+  }
+
+  .screen-key:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+    background: #e0e7ff;
+    color: #4338ca;
+  }
+
+  .screen-key-function {
+    min-width: 110px;
+    height: 44px;
+
+    padding: 0 18px;
+
+    background: #e2e8f0;
+    border: 1px solid #cbd5e1;
+    border-bottom-width: 3px;
+    border-radius: 9px;
+
+    font-size: 14px;
+    font-weight: 700;
+    color: #475569;
+
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .screen-key-function:active {
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+  }
+
+  /* 小螢幕再縮小間距 */
+  @media (max-width: 420px) {
+    #mobileKeyboardKeys .gap-1\.5 {
+      gap: 3px;
+    }
+
+    .screen-key {
+      border-radius: 6px;
+    }
+  }
+</style>
+  
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-800 font-sans">
 
@@ -145,6 +216,95 @@
 
       <!-- 反饋訊息提示器 -->
       <div id="feedbackMsg" class="mt-4 text-center font-bold text-lg min-h-[28px]"></div>
+<!-- 手機 / 平板螢幕鍵盤 -->
+<section id="mobileKeyboard"
+         class="hidden mt-6 pt-5 border-t border-slate-200 select-none">
+
+  <div class="flex justify-between items-center mb-3">
+    <div>
+      <span class="font-bold text-slate-700">📱 螢幕鍵盤</span>
+      <span id="mobileKeyboardHint"
+            class="text-xs text-slate-400 ml-2">
+        點擊按鍵作答
+      </span>
+    </div>
+
+    <button type="button"
+            onclick="toggleMobileKeyboard()"
+            class="text-xs bg-slate-200 hover:bg-slate-300 px-3 py-1.5 rounded-lg">
+      收合
+    </button>
+  </div>
+
+  <div id="mobileKeyboardKeys"
+       class="space-y-2">
+
+    <!-- 第一排 -->
+    <div class="flex justify-center gap-1.5">
+      <button type="button" class="screen-key" data-key="Q">Q</button>
+      <button type="button" class="screen-key" data-key="W">W</button>
+      <button type="button" class="screen-key" data-key="E">E</button>
+      <button type="button" class="screen-key" data-key="R">R</button>
+      <button type="button" class="screen-key" data-key="T">T</button>
+      <button type="button" class="screen-key" data-key="Y">Y</button>
+      <button type="button" class="screen-key" data-key="U">U</button>
+      <button type="button" class="screen-key" data-key="I">I</button>
+      <button type="button" class="screen-key" data-key="O">O</button>
+      <button type="button" class="screen-key" data-key="P">P</button>
+    </div>
+
+    <!-- 第二排 -->
+    <div class="flex justify-center gap-1.5">
+      <button type="button" class="screen-key" data-key="A">A</button>
+      <button type="button" class="screen-key" data-key="S">S</button>
+      <button type="button" class="screen-key" data-key="D">D</button>
+      <button type="button" class="screen-key" data-key="F">F</button>
+      <button type="button" class="screen-key" data-key="G">G</button>
+      <button type="button" class="screen-key" data-key="H">H</button>
+      <button type="button" class="screen-key" data-key="J">J</button>
+      <button type="button" class="screen-key" data-key="K">K</button>
+      <button type="button" class="screen-key" data-key="L">L</button>
+      <button type="button" class="screen-key" data-key=";">;</button>
+    </div>
+
+    <!-- 第三排 -->
+    <div class="flex justify-center gap-1.5">
+      <button type="button" class="screen-key" data-key="Z">Z</button>
+      <button type="button" class="screen-key" data-key="X">X</button>
+      <button type="button" class="screen-key" data-key="C">C</button>
+      <button type="button" class="screen-key" data-key="V">V</button>
+      <button type="button" class="screen-key" data-key="B">B</button>
+      <button type="button" class="screen-key" data-key="N">N</button>
+      <button type="button" class="screen-key" data-key="M">M</button>
+      <button type="button" class="screen-key" data-key=",">,</button>
+      <button type="button" class="screen-key" data-key=".">.</button>
+      <button type="button" class="screen-key" data-key="/">/</button>
+    </div>
+
+    <!-- 功能鍵 -->
+    <div id="mobileKeyboardFunctions"
+         class="flex justify-center gap-2 pt-1">
+
+      <button type="button"
+              class="screen-key-function"
+              onclick="handleVirtualKey('BACKSPACE')">
+        ⌫ 刪除
+      </button>
+
+    </div>
+
+  </div>
+
+  <!-- 收合後顯示 -->
+  <button id="mobileKeyboardOpenButton"
+          type="button"
+          onclick="toggleMobileKeyboard()"
+          class="hidden w-full bg-indigo-100 text-indigo-700 font-bold py-3 rounded-xl">
+    ⌨️ 顯示螢幕鍵盤
+  </button>
+
+</section>
+      
     </main>
   </div>
 
